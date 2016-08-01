@@ -128,8 +128,12 @@ if __name__ == '__main__':
     # pixmap = manager.scrape_root_window_into_pixmap()
     # manager.set_background_to_pixmap(pixmap)
 
-    image = PIL.Image.open('/home/mjk/Photos/wallpaper')
     # pixmap = manager.create_pixmap_from_image(image)
-    image = manager.get_current_background_as_image()
-    pixmap = manager.create_pixmap_from_image(image)
-    manager.set_background_to_pixmap(pixmap)
+    current_image = manager.get_current_background_as_image()
+    desired_image = PIL.Image.open('/home/mjk/Photos/wallpaper')
+    total_steps = 10
+    for step in range(total_steps):
+        alpha = step / (total_steps-1)
+        blended_image = PIL.Image.blend(current_image, desired_image, alpha)
+        pixmap = manager.create_pixmap_from_image(blended_image)
+        manager.set_background_to_pixmap(pixmap)
