@@ -4,6 +4,9 @@
 import xcffib
 import xcffib.xproto
 
+import cairocffi
+import cairocffi.pixbuf
+import cairocffi.xcb
 
 class ConnectionWrapper(object):
 
@@ -29,6 +32,12 @@ class ConnectionWrapper(object):
             xcffib.xproto.Atom.PIXMAP,
             32, 1, [pixmap]
         )
+
+    def _find_root_visual(self):
+        for depth in self.screen.allowed_depths:
+            for v in depth.visuals:
+                if v.visual_id == self.screen.root_visual:
+                    return v
 
     @staticmethod
     def create_persistent_pixmap():
@@ -57,6 +66,12 @@ class ConnectionWrapper(object):
         self.conn.core.CreateGC(gc, self.root, 0, [])
         self.conn.core.CopyArea(src, dest, gc, 0, 0, 0, 0, self.width, self.height)
 
+    def create_surface_for_pixmap(self, pixmap):
+        return cairocffi.xcb.XCBSurface(
+            self.conn, pixmap, self._find_root_visual(),
+            self.width, self.height
+        )
+
     def get_current_background(self):
         pass
 
@@ -74,7 +89,14 @@ class ConnectionWrapper(object):
         self._set_proprety_to_pixmap('_XROOTPMAP_ID', pixmap)
         self._set_proprety_to_pixmap('ESETROOT_PMAP_ID', pixmap)
         self.conn.core.ChangeWindowAttributes(self.root, xcffib.xproto.CW.BackPixmap, [pixmap])
+        self.conn.core.ClearArea(0, self.root, 0, 0, self.width, self.height)
         self.conn.flush()
+
+
+def load_image(path):
+    with open(path, 'rb') as f:
+        surface, mimetype = cairocffi.pixbuf.decode_to_image_surface(f.read())
+        return surface
 
 # Inspiration:
 # https://blogs.gnome.org/halfline/2009/11/28/plymouth-%E2%9F%B6-x-transition/
@@ -85,4 +107,10 @@ class ConnectionWrapper(object):
 
 if __name__ == '__main__':
     wrapper = ConnectionWrapper(xcffib.Connection())
-    wrapper.set_background_to_root_window_contents()
+    image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
+    pixmap = wrapper.create_persistent_pixmap()
+    pixmap_surface = wrapper.create_surface_for_pixmap(pixmap)
+    with cairocffi.Context(pixmap_surface) as context:
+        context.set_source_surface(image)
+        context.paint()
+    wrapper.set_background(pixmap)
