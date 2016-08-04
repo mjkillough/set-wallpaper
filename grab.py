@@ -118,7 +118,7 @@ def load_image(path):
 
 
 def fade_background_to_image(path, secs, fps):
-    # Assume the painting takes 0 seconds for this calculation. In reality,
+    # Assume the painting takes 0 seconds for this calculation. In reality
     # this is a crappy assumption, but we're just fading in a wallpaper so
     # who cares.
     steps = max(1, fps * secs)
