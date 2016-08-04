@@ -22,8 +22,7 @@ class ConnectionWrapper(object):
         self.root = self.screen.root
         self.width = self.screen.width_in_pixels
         self.height = self.screen.height_in_pixels
-        print(self.width, self.height)
-        self.depth = 24 # XXX
+        self.depth = self.screen.root_depth
         if persist:
             self.conn.core.SetCloseDownMode(xcffib.xproto.CloseDown.RetainPermanent)
 
