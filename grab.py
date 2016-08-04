@@ -31,16 +31,15 @@ class ConnectionWrapper(object):
         )
 
     @staticmethod
-    def copy_drawable_into_persistent_pixmap(drawable):
-        """Creates a copy of the drawable as a pixmap that is retained
-        after the display its destroyed.
+    def create_persistent_pixmap():
+        """Creates a pixmap that persists after the Display's connection is closed.
 
         We do this by making a new connection to the X Display, with a close
         down mode of RetainPermanent. We then create a Pixmap on this new
         connection, which means it gets left behind.
         """
         wrapper = ConnectionWrapper(xcffib.Connection(), persist=True)
-        pixmap = wrapper.copy_pixmap(drawable)
+        pixmap = wrapper.create_pixmap()
         wrapper.conn.flush()
         wrapper.conn.disconnect()
         return pixmap
@@ -53,12 +52,10 @@ class ConnectionWrapper(object):
         )
         return pixmap
 
-    def copy_pixmap(self, drawable):
-        pixmap = self.create_pixmap()
+    def copy_pixmap(self, src, dest):
         gc = self.conn.generate_id()
         self.conn.core.CreateGC(gc, self.root, 0, [])
-        self.conn.core.CopyArea(drawable, pixmap, gc, 0, 0, 0, 0, self.width, self.height)
-        return pixmap
+        self.conn.core.CopyArea(src, dest, gc, 0, 0, 0, 0, self.width, self.height)
 
     def get_current_background(self):
         pass
@@ -69,7 +66,8 @@ class ConnectionWrapper(object):
         Plymouth (and perhaps DMs too) leave their framebuffer behind. Grab it
         and properly set it as the background, so that we can have nice transitions.
         """
-        pixmap = self.copy_drawable_into_persistent_pixmap(self.root)
+        pixmap = self.create_persistent_pixmap()
+        self.copy_pixmap(self.root, pixmap)
         self.set_background(pixmap)
 
     def set_background(self, pixmap):
