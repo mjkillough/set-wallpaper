@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 import struct
+import time
 
 import xcffib
 import xcffib.xproto
@@ -122,11 +123,12 @@ def load_image(path):
 
 if __name__ == '__main__':
     wrapper = ConnectionWrapper(xcffib.Connection())
-    # image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
-    # pixmap = wrapper.create_persistent_pixmap()
-    # pixmap_surface = wrapper.create_surface_for_pixmap(pixmap)
-    # with cairocffi.Context(pixmap_surface) as context:
-    #     context.set_source_surface(image)
-    #     context.paint()
-    # wrapper.set_background(pixmap)
-    wrapper.set_background(wrapper.get_current_background())
+    image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
+    current_pixmap = wrapper.get_current_background()
+    pixmap_surface = wrapper.create_surface_for_pixmap(current_pixmap)
+    with cairocffi.Context(pixmap_surface) as context:
+        context.set_source_surface(image)
+        for opacity in range(10, 100, 10):
+            context.paint_with_alpha(opacity / 100)
+            wrapper.set_background(current_pixmap)
+            time.sleep(0.05)
