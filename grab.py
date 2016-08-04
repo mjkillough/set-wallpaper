@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import struct
+
 import xcffib
 import xcffib.xproto
 
@@ -32,6 +34,15 @@ class ConnectionWrapper(object):
             xcffib.xproto.Atom.PIXMAP,
             32, 1, [pixmap]
         )
+
+    def _get_pixmap_property(self, name):
+        reply = self.conn.core.GetProperty(
+            False, self.root, self._intern_atom(name),
+            xcffib.xproto.Atom.PIXMAP, 0, 32
+        ).reply()
+        if not reply.value_len:
+            return None
+        return struct.unpack('I', reply.value.buf())[0]
 
     def _find_root_visual(self):
         for depth in self.screen.allowed_depths:
@@ -73,7 +84,11 @@ class ConnectionWrapper(object):
         )
 
     def get_current_background(self):
-        pass
+        """Returns the pixmap for the current background, or None if it is not set."""
+        pixmap = self._get_pixmap_property('_XROOTPMAP_ID')
+        if pixmap is not None:
+            return pixmap
+        return self._get_pixmap_property('ESETROOT_PMAP_ID')
 
     def set_background_to_root_window_contents(self):
         """Scrapes the contents of the root window and sets them as the background.
@@ -107,10 +122,11 @@ def load_image(path):
 
 if __name__ == '__main__':
     wrapper = ConnectionWrapper(xcffib.Connection())
-    image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
-    pixmap = wrapper.create_persistent_pixmap()
-    pixmap_surface = wrapper.create_surface_for_pixmap(pixmap)
-    with cairocffi.Context(pixmap_surface) as context:
-        context.set_source_surface(image)
-        context.paint()
-    wrapper.set_background(pixmap)
+    # image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
+    # pixmap = wrapper.create_persistent_pixmap()
+    # pixmap_surface = wrapper.create_surface_for_pixmap(pixmap)
+    # with cairocffi.Context(pixmap_surface) as context:
+    #     context.set_source_surface(image)
+    #     context.paint()
+    # wrapper.set_background(pixmap)
+    wrapper.set_background(wrapper.get_current_background())
