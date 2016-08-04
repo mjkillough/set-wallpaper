@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+import argparse
 import struct
 import time
 
@@ -11,7 +12,9 @@ import cairocffi
 import cairocffi.pixbuf
 import cairocffi.xcb
 
+
 class ConnectionWrapper(object):
+    """Convenience wrapper around the bits of xcffib we need."""
 
     def __init__(self, conn, persist=False):
         self.conn = conn
@@ -114,6 +117,27 @@ def load_image(path):
         surface, mimetype = cairocffi.pixbuf.decode_to_image_surface(f.read())
         return surface
 
+
+def fade_background_to_image(path, secs, fps):
+    # Assume the painting takes 0 seconds for this calculation. In reality,
+    # this is a crappy assumption, but we're just fading in a wallpaper so
+    # who cares.
+    steps = max(1, fps * secs)
+    step = 1 / steps
+    sleep = secs / steps
+
+    image = load_image(path)
+    pixmap = wrapper.get_current_background()
+    surface = wrapper.create_surface_for_pixmap(pixmap)
+
+    with cairocffi.Context(surface) as context:
+        context.set_source_surface(image)
+        opacity = 0
+        for i in range(steps):
+            context.paint_with_alpha(i * step)
+            wrapper.set_background(pixmap)
+            time.sleep(sleep)
+
 # Inspiration:
 # https://blogs.gnome.org/halfline/2009/11/28/plymouth-%E2%9F%B6-x-transition/
 # Examples:
@@ -122,13 +146,21 @@ def load_image(path):
 # https://bugzilla.gnome.org/attachment.cgi?id=125864&action=diff
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Control desktop wallpaper.')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('--copy-root-window', dest='copy_root', action='store_true',
+                       help='Set the background to the contents of the root window.')
+    group.add_argument('--image', dest='image', type=str,
+                       help='Image to set the brackground to.')
+    parser.add_argument('--fade-secs', dest='fade_secs', type=int, default=0,
+                       help='Number of seconds to fade from current background to new')
+    parser.add_argument('--fade-fps', dest='fade_fps', type=int, default=20,
+                        help='Number of FPS to aim for during the fade')
+
+    args = parser.parse_args()
+
     wrapper = ConnectionWrapper(xcffib.Connection())
-    image = load_image('/home/mjk/Photos/random-wallpaper.jpg')
-    current_pixmap = wrapper.get_current_background()
-    pixmap_surface = wrapper.create_surface_for_pixmap(current_pixmap)
-    with cairocffi.Context(pixmap_surface) as context:
-        context.set_source_surface(image)
-        for opacity in range(10, 100, 10):
-            context.paint_with_alpha(opacity / 100)
-            wrapper.set_background(current_pixmap)
-            time.sleep(0.05)
+    if args.copy_root:
+        wrapper.set_background_to_root_window_contents()
+    elif args.image:
+        fade_background_to_image(args.image, args.fade_secs, args.fade_fps)
