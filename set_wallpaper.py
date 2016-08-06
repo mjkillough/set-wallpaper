@@ -137,14 +137,8 @@ def fade_background_to_image(path, secs, fps):
             wrapper.set_background(pixmap)
             time.sleep(sleep)
 
-# Inspiration:
-# https://blogs.gnome.org/halfline/2009/11/28/plymouth-%E2%9F%B6-x-transition/
-# Examples:
-# https://git.gnome.org/browse/gdm/commit/?h=plymouth-integration&id=e6ed6f48c35a6c736a5cde2dcfb6c10941e07809
-# https://github.com/derf/feh/blob/master/src/wallpaper.c
-# https://bugzilla.gnome.org/attachment.cgi?id=125864&action=diff
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description='Control desktop wallpaper.')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--copy-root-window', dest='copy_root', action='store_true',

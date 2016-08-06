@@ -1,0 +1,2 @@
+cairocffi==0.7.2
+xcffib==0.4.2
