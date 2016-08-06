@@ -146,7 +146,7 @@ def main():
     group.add_argument('--image', dest='image', type=str,
                        help='Image to set the brackground to.')
     parser.add_argument('--fade-secs', dest='fade_secs', type=int, default=0,
-                       help='Number of seconds to fade from current background to new')
+                        help='Number of seconds to fade from current background to new')
     parser.add_argument('--fade-fps', dest='fade_fps', type=int, default=20,
                         help='Number of FPS to aim for during the fade')
 
