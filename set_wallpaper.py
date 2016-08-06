@@ -126,6 +126,7 @@ def fade_background_to_image(path, secs, fps):
     sleep = secs / steps
 
     image = load_image(path)
+    wrapper = ConnectionWrapper(xcffib.Connection())
     pixmap = wrapper.get_current_background()
     surface = wrapper.create_surface_for_pixmap(pixmap)
 
@@ -152,8 +153,8 @@ def main():
 
     args = parser.parse_args()
 
-    wrapper = ConnectionWrapper(xcffib.Connection())
     if args.copy_root:
+        wrapper = ConnectionWrapper(xcffib.Connection())
         wrapper.set_background_to_root_window_contents()
     elif args.image:
         fade_background_to_image(args.image, args.fade_secs, args.fade_fps)
