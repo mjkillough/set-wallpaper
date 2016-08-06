@@ -28,6 +28,13 @@ optional arguments:
 MIT
 
 
+## Installing
+
+Install non-Python dependencies (see below) and then: `python setup.py install`.
+
+Arch users can use [this PKGBUILD](https://github.com/mjkillough/arch-packages/tree/master/set-wallpaper).
+
+
 ## Dependencies
 
 Developed/run on Python 3. It should be possible to get it to run on Python 2 with some simple tweaks (if it doesn't already).
