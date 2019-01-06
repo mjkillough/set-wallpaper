@@ -16,7 +16,7 @@ import cairocffi.xcb
 class ConnectionWrapper(object):
     """Convenience wrapper around the bits of xcffib we need."""
 
-    def __init__(self, conn, persist=False):
+    def __init__(self, conn, persist=True):
         self.conn = conn
         self.screen = conn.get_setup().roots[0]
         self.root = self.screen.root
@@ -53,20 +53,6 @@ class ConnectionWrapper(object):
                 if v.visual_id == self.screen.root_visual:
                     return v
 
-    @staticmethod
-    def create_persistent_pixmap():
-        """Creates a pixmap that persists after the Display's connection is closed.
-
-        We do this by making a new connection to the X Display, with a close
-        down mode of RetainPermanent. We then create a Pixmap on this new
-        connection, which means it gets left behind.
-        """
-        wrapper = ConnectionWrapper(xcffib.Connection(), persist=True)
-        pixmap = wrapper.create_pixmap()
-        wrapper.conn.flush()
-        wrapper.conn.disconnect()
-        return pixmap
-
     def create_pixmap(self):
         pixmap = self.conn.generate_id()
         self.conn.core.CreatePixmap(
@@ -99,7 +85,7 @@ class ConnectionWrapper(object):
         Plymouth (and perhaps DMs too) leave their framebuffer behind. Grab it
         and properly set it as the background, so that we can have nice transitions.
         """
-        pixmap = self.create_persistent_pixmap()
+        pixmap = self.create_pixmap()
         self.copy_pixmap(self.root, pixmap)
         self.set_background(pixmap)
 
