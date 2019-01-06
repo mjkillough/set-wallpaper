@@ -7,7 +7,7 @@ from setuptools import setup
 setup(
     name='set-wallpaper',
     description='Script to change wallpaper, with optional fade from previous.',
-    version='1.0',
+    version='1.1',
     author='Michael Killough',
     author_email='michaeljkillough@gmail.com',
     url='https://github.com/mjkillough/set-wallpaper',
